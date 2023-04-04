@@ -14,31 +14,31 @@ void results_for_file(struct stat file, char name[]){
         }else if(options == 'd'){
             printf("The size of the file is :%ld \n", file.st_size);
         }else if(options == 'm'){
-            printf("The time of the last modification is: \n", file.st_mtime);
+            printf("The time of the last modification is: %ld\n", file.st_mtime);
         }else if(options == 'a'){
-            printf("The access rights are: \n",);
-            if(S_IRWXU(file.st_mode)==1)
+            printf("The access rights are: \n");
+            if(S_IRWXU&file.st_mode)
                 printf("owner has read, write, and execute permission\n");
-            if(S_IRUSR(file.st_mode)==1)
+            if(S_IRUSR&file.st_mode)
                 printf("owner has read permission\n");
-            if(S_IWUSR(file.st_mode)==1)
+            if(S_IWUSR&file.st_mode)
                 printf("owner has write permission\n");
-            if(S_IXUSR(file.st_mode)==1)
+            if(S_IXUSR&file.st_mode)
                 printf("owner has execute permission\n");
-            if(S_IRWXG(file.st_mode)==1)
+            if(S_IRWXG&file.st_mode)
                 printf("group has read, write, and execute permission\n");
-            if(S_IRGRP(file.st_mode)==1)
+            if(S_IRGRP&file.st_mode)
                 printf("group has read permission\n");
-            if(S_IWGRP(file.st_mode)==1)
+            if(S_IWGRP&file.st_mode)
                 printf("group has write permission\n");
-            if(S_IXGRP(file.st_mode)==1)
+            if(S_IXGRP&file.st_mode)
                 printf("group has execute permission\n");   
-            if(S_IRWXO(file.st_mode)==1)
-                printf("others  (not  in group) have read, write, and execute permission\n"); 
+            if(S_IRWXO&file.st_mode)
+                printf("others (not  in group) have read, write, and execute permission\n"); 
         }else if(options == 'l'){
             printf("In order to create a symbolik link, please give the name as a string argument\n");
             char name[20];
-            name = gets();
+            scanf("%s", name);
             printf("The name is %s\n", name);
         }
     }
