@@ -2,7 +2,11 @@
 #include<string.h>
 #include<sys/types.h>
 #include<sys/stat.h>
+#include<sys/wait.h>
 #include<string.h>
+#include<stdlib.h>
+#include <unistd.h>
+
 
 void results_for_file(struct stat file, char name[]){
     char options;
@@ -45,28 +49,52 @@ void results_for_file(struct stat file, char name[]){
 }
 
 int main(int args, char* argv[]){
+    int status;
     if(args < 2){
         printf("not enough arguments\n");
         printf("send arguments of type: paths to regular files, directories or symbolic link\n");
         return -1;
     }
 
-    for(int i = 1; i < args; i++){
+     for(int i = 1; i < args; i++){
+        printf("here for %s and i = %d\n", argv[i], i);
         struct stat statbuf;
         char option;
+        pid_t p2, p1;
+        //start a process here
         if(lstat(argv[i], &statbuf)==0){
-           if(S_ISREG(statbuf.st_mode)==1){
-            printf("A) regular file\n-n (file name)\n-d (dim/size)\n-h (nr of hard links)\n-m (time of last modif)\n-a (access rights)\n-l (create sym link, give: link name)\n");
-            results_for_file(statbuf, argv[i]);
-           }else if(S_ISLNK(statbuf.st_mode)==1){
-            printf("B) sym link\n-n (link name)\n-l(delete link)\n-d(size of link)\n-z(size of target)\n-a(access rights for sym link\n)");
-            scanf("%c", &option);
-            printf("%c\n", option);
-           }else if(S_ISDIR(statbuf.st_mode)==1){
-            printf("C) directories\n-n (name)\n-d (size)\n-a(access rights)\n-c(total number of .c files)");
-            scanf("%c", &option);
-            printf("%c\n", option);
-           }
+            p1 = fork();
+            if(p1 < 0){
+                printf("Could not fork\n");
+                return -1;}
+            else if(p1 == 0){
+                if(S_ISREG(statbuf.st_mode)==1){
+                    printf("A) regular file\n-n (file name)\n-d (dim/size)\n-h (nr of hard links)\n-m (time of last modif)\n-a (access rights)\n-l (create sym link, give: link name)\n");
+                    results_for_file(statbuf, argv[i]);
+                }else if(S_ISLNK(statbuf.st_mode)==1){
+                    printf("B) sym link\n-n (link name)\n-l(delete link)\n-d(size of link)\n-z(size of target)\n-a(access rights for sym link\n)");
+                    scanf("%c", &option);
+                    printf("%c\n", option);
+                }else if(S_ISDIR(statbuf.st_mode)==1){
+                    printf("C) directories\n-n (name)\n-d (size)\n-a(access rights)\n-c(total number of .c files)");
+                    scanf("%c", &option);
+                    printf("%c\n", option);
+                }
+                exit(0);
+            }else{
+                //test if it's a regular file
+                p2 = fork();
+                if(p2 < 0){
+                    printf("Could not fork second process\n");
+                    return -1;
+                }else if(p2 == 0){
+                    if(S_ISREG(statbuf.st_mode)==1){
+                        execlp("bash", "bash", "c_errors.sh", argv[i], NULL);
+                    }
+                }
+            }
         }
+        waitpid(p1, &status, 0);
+        waitpid(p2, &status, 0);
     }
 }
