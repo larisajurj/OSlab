@@ -82,16 +82,36 @@ int main(int args, char* argv[]){
                 }
                 exit(0);
             }else{
+                int pfd[2]; // pfd[0]- read descriptor, pfd[1]-write descriptor
+                char buff[30];
+                int newfd;
+                if(pipe(pfd)<0){
+                    printf("Could not create pipe\n");
+                    exit(0);
+                }
                 //test if it's a regular file
                 p2 = fork();
                 if(p2 < 0){
                     printf("Could not fork second process\n");
                     return -1;
                 }else if(p2 == 0){
+                    close(pfd[0]); //close read descriptor
+                    if((newfd=  dup2(pfd[1],1))<0)
+                    {
+                        perror("Error when calling dup2\n");
+                        exit(1);
+                    }
                     if(S_ISREG(statbuf.st_mode)==1){
                         execlp("bash", "bash", "c_errors.sh", argv[i], NULL);
                     }
+                    write(pfd[1], buff, sizeof(buff)/sizeof(char));
+                    exit(1);
                 }
+                close(pfd[1]); /* close the writting end of the pipe */
+                stream = fdopen(pfd[0],"r");
+                fscanf(stream,"%s",string);
+                close(pfd[0]);
+
             }
         }
         waitpid(p1, &status, 0);
