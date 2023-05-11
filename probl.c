@@ -7,78 +7,112 @@
 #include<stdlib.h>
 #include <unistd.h>
 
+int isValid1(char test[100], int size){
+    for(int i = 0; i < size; i++){
+        if((test[i] != 'n') && (test[i] != 'h') && (test[i] != 'd') && (test[i] != 'm') && (test[i] != 'a') && (test[i] != 'l') )
+            return 0;
+    }
+    return 1;
+}
+int results_for_file(struct stat file, char name[]){
+    char input = getchar();
+    while(input != '\n' && input != '-'){
+        input = getchar();
+    }
+    if(input == '-'){
+        char full_options[100];
+        int i = 0;
+        while((input = getchar()) != '\n' && i < 100){
+            full_options[i++] = input;
+        }
+        full_options[i] = '\0';
+        if(!isValid1(full_options, i)){
+            printf("\n!!!!  Not a valid option!  !!!!\nPlease select only valid options from the menu:\n\n");
+            return 1; // to print the menu again
+        }else{
+            printf("________________________________\n");
+            char options;
+            for(int j = 0; j < i; j++){
+                options = full_options[j];
+                switch (options){
+                    case 'n':
+                        printf("The name of the file is:%s\n", name);
+                        break;
+                    case 'h':
+                        printf("The number of hard links is: %ld\n", file.st_nlink);
+                        break;
+                    case 'd':
+                        printf("The size of the file is :%ld \n", file.st_size);
+                        break;
+                    case 'm':
+                        printf("The time of the last modification is: %ld\n", file.st_mtime);
+                        break;
+                    case 'a':
+                        printf("The access rights are: \n");
+                        printf("OWNER: \n");
+                        printf("Read: ");
+                        if(S_IRUSR&file.st_mode)
+                            printf("YES\n");
+                        else
+                            printf("NO\n");
+                        printf("Write: ");
+                        if(S_IWUSR&file.st_mode)
+                            printf("YES\n");
+                        else
+                            printf("NO\n");
 
-void results_for_file(struct stat file, char name[]){
-    char options;
-    while((options = getchar()) != '\n'){
-        if(options == 'n'){
-            printf("The name of the file is:%s\n", name);
-        }else if(options == 'h'){
-            printf("The number of hard links is: %ld\n", file.st_nlink);
-        }else if(options == 'd'){
-            printf("The size of the file is :%ld \n", file.st_size);
-        }else if(options == 'm'){
-            printf("The time of the last modification is: %ld\n", file.st_mtime);
-        }else if(options == 'a'){
-            printf("The access rights are: \n");
-            printf("OWNER: \n");
-            printf("Read: ");
-            if(S_IRUSR&file.st_mode)
-                printf("YES\n");
-            else
-                printf("NO\n");
-            printf("Write: ");
-            if(S_IWUSR&file.st_mode)
-                 printf("YES\n");
-            else
-                printf("NO\n");
+                        printf("Execute: ");
+                        if(S_IXUSR&file.st_mode)
+                        printf("YES\n");
+                        else
+                            printf("NO\n");
 
-            printf("Execute: ");
-            if(S_IXUSR&file.st_mode)
-               printf("YES\n");
-            else
-                printf("NO\n");
+                        printf("\nGROUP: \n");
+                        printf("Read: ");
+                        if(S_IRGRP&file.st_mode)
+                        printf("YES\n");
+                        else
+                            printf("NO\n");
+                        printf("Write: ");
+                        if(S_IWGRP&file.st_mode)
+                            printf("YES\n");
+                        else
+                            printf("NO\n");
+                        printf("Execute: ");
+                        if(S_IXGRP&file.st_mode)
+                            printf("YES\n");
+                        else
+                        printf("NO\n");  
 
-            printf("\nGROUP: \n");
-            printf("Read: ");
-            if(S_IRGRP&file.st_mode)
-               printf("YES\n");
-            else
-                printf("NO\n");
-            printf("Write: ");
-            if(S_IWGRP&file.st_mode)
-                printf("YES\n");
-            else
-                printf("NO\n");
-            printf("Execute: ");
-            if(S_IXGRP&file.st_mode)
-                printf("YES\n");
-            else
-            printf("NO\n");  
+                        printf("\nOTHERS: \n");
+                        printf("Read: ");
+                        if(S_IROTH&file.st_mode)
+                        printf("YES\n");
+                        else
+                            printf("NO\n");
+                        printf("Write: ");
+                        if(S_IWOTH&file.st_mode)
+                            printf("YES\n");
+                        else
+                            printf("NO\n");
+                        printf("Execute: ");
+                        if(S_IROTH&file.st_mode)
+                            printf("YES\n");
+                        else
+                        printf("NO\n");  
+                        break;
+                    case 'l':
+                        printf("!!!! In order to create a symbolik link, please give the name as a string argument\n");
+                        char name[20];
+                        scanf("%s", name);
+                        printf("The name is %s\n", name);
+                        break;
 
-            printf("\nOTHERS: \n");
-            printf("Read: ");
-            if(S_IROTH&file.st_mode)
-               printf("YES\n");
-            else
-                printf("NO\n");
-            printf("Write: ");
-            if(S_IWOTH&file.st_mode)
-                printf("YES\n");
-            else
-                printf("NO\n");
-            printf("Execute: ");
-            if(S_IROTH&file.st_mode)
-                printf("YES\n");
-            else
-            printf("NO\n");  
-        }else if(options == 'l'){
-            printf("In order to create a symbolik link, please give the name as a string argument\n");
-            char name[20];
-            scanf("%s", name);
-            printf("The name is %s\n", name);
+                }
+            }
         }
     }
+    return 0;
 }
 float compute_score(int errors, int warnings){
     if(errors & warnings)
@@ -111,8 +145,11 @@ int main(int args, char* argv[]){
                 return -1;}
             else if(p1 == 0){
                 if(S_ISREG(statbuf.st_mode)==1){
-                    printf("A) regular file\n-n (file name)\n-d (dim/size)\n-h (nr of hard links)\n-m (time of last modif)\n-a (access rights)\n-l (create sym link, give: link name)\n");
-                    results_for_file(statbuf, argv[i]);
+                    int print_menu = 1;
+                    while(print_menu){
+                        printf("A) regular file\n-n (file name)\n-d (dim/size)\n-h (nr of hard links)\n-m (time of last modif)\n-a (access rights)\n-l (create sym link, give: link name)\n");
+                        print_menu = results_for_file(statbuf, argv[i]);
+                    }
                 }else if(S_ISLNK(statbuf.st_mode)==1){
                     printf("B) sym link\n-n (link name)\n-l(delete link)\n-d(size of link)\n-z(size of target)\n-a(access rights for sym link\n)");
                     scanf("%c", &option);
@@ -125,7 +162,6 @@ int main(int args, char* argv[]){
                 exit(0);
             }else{
                 int pfd[2]; // pfd[0]- read descriptor, pfd[1]-write descriptor
-                char buff[200];
                 int newfd;
                 if(pipe(pfd)<0){
                     printf("Could not create pipe\n");
