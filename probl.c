@@ -363,19 +363,25 @@ int main(int args, char* argv[]){
                 if(S_ISREG(statbuf.st_mode)==1){
                     int print_menu = 1;
                     while(print_menu){
-                        printf("A) regular file\n-n (file name)\n-d (dim/size)\n-h (nr of hard links)\n-m (time of last modif)\n-a (access rights)\n-l (create sym link, give: link name)\n");
+                        printf("\033[0;36m");
+                        printf("\n***%s is a regular file.***\nChoose what do you want to print:\n-n (file name)\n-d (dim/size)\n-h (nr of hard links)\n-m (time of last modif)\n-a (access rights)\n-l (create sym link, give: link name)\n", argv[i]);
+                        printf("\033[0m");
                         print_menu = results_for_file(statbuf, argv[i]);
                     }
                 }else if(S_ISLNK(statbuf.st_mode)==1){
                     int print_menu = 1;
                     while(print_menu){
-                        printf("B) sym link\n-n (link name)\n-l(delete link)\n-d(size of link)\n-t(size of target)\n-a(access rights for sym link)\n");
+                        printf("\033[0;33m");
+                        printf("\n***%s is a symbolic link.***\nChoose what do you want to print:\n-n (link name)\n-l(delete link)\n-d(size of link)\n-t(size of target)\n-a(access rights for sym link)\n", argv[i]);
+                        printf("\033[0m");
                         print_menu = results_for_symlink(statbuf, argv[i]);
                     }
                 }else if(S_ISDIR(statbuf.st_mode)==1){
                     int print_menu = 1;
                     while(print_menu){
-                        printf("C) directories\n-n (name)\n-d (size)\n-a(access rights)\n-c(total number of .c files)\n");
+                        printf("\033[0;32m");
+                        printf("\n***%s is a directory.***\nChoose what do you want to print:\n-n (name)\n-d (size)\n-a(access rights)\n-c(total number of .c files)\n", argv[i]);
+                        printf("\033[0m");
                         print_menu = results_for_dir(statbuf, argv[i]);
                     }
                 }
@@ -419,7 +425,6 @@ int main(int args, char* argv[]){
                     exit(1);
                 }
                 //the parent reads the output of the string
-
                 close(pfd[1]); /* close the writting end of the pipe */
                 FILE* stream = fdopen(pfd[0], "r");
                 if(S_ISREG(statbuf.st_mode)==1 && strstr(argv[i],".c")){
@@ -427,8 +432,14 @@ int main(int args, char* argv[]){
                 
                     fscanf(stream,"%s",errors);
                     fscanf(stream,"%s",warnings);
+                    FILE *file = fopen("grades.txt", "a");  // Open the file in append mode
 
-                    printf("%s : %.1f\n", argv[i], compute_score(atoi(errors), atoi(warnings)));
+                    if (file == NULL) {
+                        perror("Failed to open file");
+                        return 1;
+                    }
+                    fprintf(file, "%s : %.1f\n", argv[i], compute_score(atoi(errors), atoi(warnings)));
+                    fclose(file);
                 }
                 char buffer[1024];  // Buffer to store each line
 
@@ -436,10 +447,25 @@ int main(int args, char* argv[]){
                     printf("%s", buffer);
                  }
                 close(pfd[0]);
+                int status;
+                pid_t childPid = waitpid(p2, &status, 0);  // Wait for the child process to complete
 
+                if (WIFEXITED(status)) {
+                    int exitCode = WEXITSTATUS(status);
+                    printf("The process with PID %d has ended with exit code %d\n", childPid, exitCode);
+                } else {
+                    printf("The process with PID %d has terminated abnormally\n", childPid);
+                }
+                
+                childPid = waitpid(p1, &status, 0);  // Wait for the child process to complete
+
+                if (WIFEXITED(status)) {
+                    int exitCode = WEXITSTATUS(status);
+                    printf("The process with PID %d has ended with exit code %d\033[0m\n", childPid, exitCode);
+                } else {
+                    printf("The process with PID %d has terminated abnormally\n", childPid);
+                }
             }
         }
-        waitpid(p1, &status, 0);
-        waitpid(p2, &status, 0);
     }
 }
