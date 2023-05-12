@@ -447,7 +447,7 @@ int main(int args, char* argv[]){
                     printf("%s", buffer);
                  }
                 close(pfd[0]);
-                int status;
+                int staStus;
                 pid_t childPid = waitpid(p2, &status, 0);  // Wait for the child process to complete
 
                 if (WIFEXITED(status)) {
